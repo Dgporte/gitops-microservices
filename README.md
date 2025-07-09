@@ -95,7 +95,6 @@ kubectl get pods -n argocd
     ```
 - Acesse [https://localhost:8080](https://localhost:8080)
 
-- 
 - Senha inicial do Argo CD:
     ```sh
     kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.password}" | base64 -d && echo
