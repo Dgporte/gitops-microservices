@@ -99,7 +99,7 @@ kubectl get pods -n argocd
     ```sh
     kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.password}" | base64 -d && echo
     ```
-  (usuário: `admin` — senha: recuperar via kubectl get secret)
+  (usuário: `admin` — senha: use o comando acima)
 
 ### 4. Deploy da aplicação via ArgoCD
 
