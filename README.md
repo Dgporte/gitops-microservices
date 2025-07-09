@@ -83,7 +83,7 @@ Executar e orquestrar, via GitOps, a aplicação Online Boutique em um cluster K
 
 ```sh
 kubectl create namespace argocd
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argocd/stable/manifests/install.yaml
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/release-2.11/manifests/install.yaml
 kubectl get pods -n argocd
 ```
 
