@@ -93,7 +93,13 @@ kubectl get pods -n argocd
     ```sh
     kubectl port-forward svc/argocd-server -n argocd 8080:443
     ```
-- Acesse [https://localhost:8080](https://localhost:8080)  
+- Acesse [https://localhost:8080](https://localhost:8080)
+
+- 
+- Senha inicial do Argo CD:
+    ```sh
+    kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.password}" | base64 -d && echo
+    ```
   (usuário: `admin` — senha: recuperar via kubectl get secret)
 
 ### 4. Deploy da aplicação via ArgoCD
