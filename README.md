@@ -16,6 +16,10 @@ A aplicação utilizada é o [Online Boutique](https://github.com/GoogleCloudPla
 - [Objetivo](#objetivo)
 - [Pré-requisitos](#pré-requisitos)
 - [Etapas do Projeto](#etapas-do-projeto)
+- [Como Criar o App no ArgoCD](#como-criar-o-app-no-argocd)
+- [Sincronizando e Aplicando no Cluster](#sincronizando-e-aplicando-no-cluster)
+- [Visualização dos Componentes no ArgoCD](#visualização-dos-componentes-no-argocd)
+- [Histórico de Logs e Estados](#histórico-de-logs-e-estados)
 - [Entregas e Resultados](#entregas-e-resultados)
 - [Problemas e Soluções](#problemas-e-soluções)
 - [Customização Realizada](#customização-realizada)
@@ -101,19 +105,182 @@ kubectl get pods -n argocd
     ```
   (usuário: `admin` — senha: use o comando acima)
 
-### 4. Deploy da aplicação via ArgoCD
+---
 
-- Criação de um "Application" no ArgoCD apontando para o repositório Git, no path correto (ex: `k8s/`).
-- Sincronização para aplicar os manifests no cluster.
-- Monitoramento do status dos pods pela interface do ArgoCD.
+## Como Criar o App no ArgoCD
 
-### 5. Exposição do frontend
+🔷 **1. Clique em "New App" no painel do ArgoCD**  
+Você será levado para o formulário de criação de aplicação. Preencha conforme abaixo:
 
-- O serviço frontend é do tipo ClusterIP. Para acessar:
-    ```sh
-    kubectl port-forward svc/frontend-external 8082:80
-    ```
-- Aplicação disponível em [http://localhost:8082](http://localhost:8082)
+### 🔹 General (Configuração Geral)
+
+- **Application Name:**  
+  `online-boutique`  
+  Esse será o nome da aplicação dentro do ArgoCD. Pode ser qualquer nome, mas use algo representativo.
+
+- **Project:**  
+  `default`  
+  O ArgoCD permite separar aplicações em "projetos". Usaremos o padrão chamado default.
+
+- **Sync Policy:**  
+  `Manual`  
+  Deixe como manual inicialmente. Assim, você terá que clicar em "Sync" para aplicar as alterações quando desejar.  
+  Depois, pode mudar para automática (auto-sync) se quiser que o ArgoCD sempre aplique mudanças do Git automaticamente.
+
+### 🔹 Source (Fonte dos arquivos YAML)
+
+- **Repository URL:**  
+  `https://github.com/SEU_USUARIO/SEU_REPO.git`  
+  Cole a URL exata do seu repositório GitHub onde está o arquivo `online-boutique.yaml`.  
+  Substitua `SEU_USUARIO` e `SEU_REPO` pelo nome do seu perfil e do repositório.  
+  Exemplo: `https://github.com/diogodantas/gitops-microservices.git`
+
+- **Revision:**  
+  `HEAD`  
+  O ArgoCD sempre irá buscar a última versão da branch principal (main ou master).
+
+- **Path:**  
+  `k8s`  
+  Caminho dentro do repositório até o arquivo de manifesto.  
+  Se seu `online-boutique.yaml` está dentro da pasta `k8s/`, é isso que você coloca.
+
+### 🔹 Destination (Cluster Kubernetes de destino)
+
+- **Cluster URL:**  
+  `https://kubernetes.default.svc`  
+  Endereço padrão para o cluster Kubernetes local. Esse valor funciona automaticamente em ambientes locais como Docker Desktop ou Rancher Desktop.
+
+- **Namespace:**  
+  `default`  
+  O namespace Kubernetes onde os recursos da aplicação serão criados. Pode deixar default, a menos que tenha criado outro namespace.
+
+---
+
+🔄 **Finalize**  
+Depois de preencher tudo, clique em "Create".
+
+O ArgoCD criará a aplicação e você verá o status dela. Clique em "Sync" para que ele aplique os arquivos YAML no cluster e comece a criar os pods, serviços e outros recursos.
+
+---
+
+## Sincronizando e Aplicando no Cluster
+
+🔷 **2. Clique em "Sync" para aplicar os arquivos no cluster**  
+Depois de criar a aplicação com sucesso no ArgoCD, é hora de fazer o deploy dos recursos no Kubernetes. Neste primeiro momento, a sincronização é manual e você deve clicar no botão **Sync** na interface do ArgoCD.
+
+### 🔄 O que o botão "Sync" faz?
+
+Ao clicar em **Sync**, o ArgoCD irá:
+
+- Acessar o repositório Git configurado;
+- Ler os arquivos YAML no caminho (Path) especificado;
+- Aplicar todos os recursos definidos (pods, services, deployments, etc.) no cluster Kubernetes de destino (Destination);
+- Atualizar o estado da aplicação e mostrar visualmente os pods e serviços criados na interface do ArgoCD.
+
+> **Dica:** Sempre que fizer uma alteração nos arquivos YAML do repositório (ex: ajustar recursos, adicionar serviços, modificar réplicas), clique novamente em **Sync** para atualizar o ambiente Kubernetes de acordo com as últimas configurações do Git.
+
+---
+
+## Visualização dos Componentes no ArgoCD
+
+🖼️ **Visualizando os componentes no ArgoCD**
+
+Após clicar em **Sync** e a sincronização ser concluída com sucesso, você verá um diagrama semelhante ao exemplo abaixo na interface do ArgoCD:
+
+> *(Inclua aqui um print ou screenshot do painel do ArgoCD mostrando a aplicação online-boutique com os componentes — se possível)*
+
+Esse diagrama representa todos os recursos da aplicação **online-boutique** criados a partir do seu arquivo YAML. Cada linha conecta os serviços e pods, mostrando:
+
+- Os serviços (Service - SVC) de cada microserviço;
+- Os pods ativos criados a partir dos deployments;
+- O status em tempo real de cada recurso (ícones verdes indicam que está tudo OK).
+
+Essa visualização facilita o acompanhamento e o gerenciamento da aplicação diretamente pelo ArgoCD, sem precisar usar a linha de comando para ver se os pods estão no ar.
+
+---
+
+## 🧾 Histórico de Logs e Estados – Projeto GitOps com ArgoCD + Online Boutique
+
+### ✅ Pods iniciais – Estado logo após o deploy
+
+```bash
+NAME                                     READY   STATUS             RESTARTS        AGE
+adservice-6fd5cbf8bb-qwtw8               0/1     CrashLoopBackOff   4 (53s ago)     6m9s
+emailservice-65f76bddc4-q9jtr            0/1     CrashLoopBackOff   6 (37s ago)     6m11s
+recommendationservice-7bf646dd58-5rwcz   0/1     CrashLoopBackOff   7 (7s ago)      6m10s
+```
+
+#### 📜 Logs – emailservice
+
+```json
+{
+  "message": "starting the email service in dummy mode.",
+  "message": "Profiler disabled.",
+  "message": "Tracing disabled.",
+  "message": "listening on port: 8080"
+}
+```
+
+#### 📜 Logs – recommendationservice
+
+```json
+{
+  "message": "initializing recommendationservice",
+  "message": "Profiler disabled.",
+  "message": "Tracing disabled.",
+  "message": "product catalog address: productcatalogservice:3550",
+  "message": "listening on port: 8080"
+}
+```
+
+#### 📜 Logs – adservice
+
+```json
+{
+  "message": "AdService starting.",
+  "message": "Stats enabled, but temporarily unavailable",
+  "message": "Tracing enabled but temporarily unavailable",
+  "message": "Ad Service started, listening on 9555"
+}
+```
+
+#### 🛠️ Problema detectado com adservice – describe pod
+
+```bash
+Reason:       Error
+Exit Code:    143
+Message:      Readiness probe failed: timeout: failed to connect service "10.1.0.88:9555" within 1s
+```
+
+### ✅ Estado final – Após todos os pods estabilizarem
+
+```bash
+NAME                                     READY   STATUS    RESTARTS         AGE
+adservice-6fd5cbf8bb-qwtw8               1/1     Running   8 (13m ago)      24m
+emailservice-65f76bddc4-q9jtr            1/1     Running   10 (9m48s ago)   24m
+recommendationservice-7bf646dd58-5rwcz   1/1     Running   11 (9m33s ago)   24m
+```
+
+### ❌ Tentativa de apagar o app online-boutique do ArgoCD
+
+```bash
+kubectl delete application online-boutique -n argocd
+
+Error from server (NotFound): applications.argoproj.io "online-boutique" not found
+```
+
+Logo após:  
+Você removeu os manifests do GitHub ou desincronizou, mas como o ArgoCD ainda estava apontando para o repositório, ele recriou os pods automaticamente.
+
+### 🔁 Estado após "recriação" pelo ArgoCD
+
+```bash
+NAME                                     READY   STATUS    RESTARTS         AGE
+adservice                                1/1     Running   8                119m
+recommendationservice                    1/1     Running   11               119m
+emailservice                             1/1     Running   10               119m
+# (e todos os outros também em Running)
+```
 
 ---
 
