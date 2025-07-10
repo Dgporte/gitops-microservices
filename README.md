@@ -25,6 +25,7 @@ A aplicação utilizada é o [Online Boutique](https://github.com/GoogleCloudPla
 - [Customização Realizada](#customização-realizada)
 - [Considerações Finais](#considerações-finais)
 - [Referências](#referências)
+- [Usando Repositório Privado](#usando-repositorio-privado)
 
 ---
 
@@ -368,3 +369,46 @@ Além de exercitar conceitos essenciais de infraestrutura como código, integra�
 - [Online Boutique (GoogleCloudPlatform/microservices-demo)](https://github.com/GoogleCloudPlatform/microservices-demo)
 - [Kubernetes](https://kubernetes.io/)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+
+---
+
+## Usando Repositório Privado
+
+Por padrão, este guia mostra o uso de um repositório **público** do GitHub para facilitar o acesso dos operadores GitOps (como o ArgoCD).
+
+No entanto, é totalmente possível usar um **repositório privado** para armazenar seus manifests YAML, garantindo mais segurança e controle de acesso. Veja o que muda e como configurar:
+
+### O que muda ao usar repositório privado?
+
+- O ArgoCD (ou outra ferramenta GitOps) **precisa de credenciais** para acessar o repositório privado no GitHub.
+- É necessário **cadastrar essas credenciais** no ArgoCD para que ele consiga clonar o repositório e sincronizar os manifests.
+
+### Como configurar o acesso ao repositório privado
+
+1. **Crie um Personal Access Token (PAT) no GitHub:**
+   - Vá até [Settings > Developer settings > Personal access tokens](https://github.com/settings/tokens).
+   - Gere um novo token com permissão mínima `repo` (apenas leitura).
+   - Copie o token gerado com segurança.
+
+2. **Adicione as credenciais no ArgoCD:**
+   - Acesse o painel web do ArgoCD e vá em **Settings > Repositories**.
+   - Clique em **Connect Repo**.
+   - Preencha:
+     - **Repository URL:** a URL do seu repositório privado (ex: `https://github.com/SEU_USUARIO/SEU_REPO_PRIVADO.git`)
+     - **Username:** seu nome de usuário do GitHub
+     - **Password:** cole o token gerado acima
+   - Ou, se preferir, use a linha de comando:
+     ```sh
+     argocd repo add https://github.com/SEU_USUARIO/SEU_REPO_PRIVADO.git \
+       --username SEU_USUARIO \
+       --password SEU_TOKEN
+     ```
+
+3. **Resto do fluxo**
+   - Na hora de criar o Application no ArgoCD, use a URL do repositório privado normalmente.
+   - O ArgoCD usará as credenciais cadastradas para acessar os arquivos de maneira transparente.
+   - O restante do processo (sincronização, visualização e automação) permanece igual ao de um repositório público.
+
+> **Dica:** Em projetos corporativos, prefira tokens com permissões mínimas e, se possível, autenticação via SSH.
+
+---
