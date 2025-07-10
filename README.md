@@ -107,16 +107,34 @@ kubectl get pods -n argocd
 
 ---
 
+### 4. Deploy da aplicação via ArgoCD
+
+- Criação de um "Application" no ArgoCD apontando para o repositório Git, no path correto (ex: `k8s/`).
+- Sincronização para aplicar os manifests no cluster.
+- Monitoramento do status dos pods pela interface do ArgoCD.
+
+### 5. Exposição do frontend
+
+- O serviço frontend é do tipo ClusterIP. Para acessar:
+    ```sh
+    kubectl port-forward svc/frontend-external 8082:80
+    ```
+- Aplicação disponível em [http://localhost:8082](http://localhost:8082)
+
+---
+
 ## Como Criar o App no ArgoCD
 
 🔷 **1. Clique em "New App" no painel do ArgoCD**  
+![Tela New App](imagesargocd/1.png)
+
 Você será levado para o formulário de criação de aplicação. Preencha conforme abaixo:
 
 ### 🔹 General (Configuração Geral)
 
 - **Application Name:**  
   `online-boutique`  
-  Esse será o nome da aplicação dentro do ArgoCD. Pode ser qualquer nome, mas use algo representativo.
+  Esse será o nome da aplicação dentro do ArgoCD. Pode ser qualquer nome, mas use algo representativo, como o nome da aplicação de microserviços.
 
 - **Project:**  
   `default`  
@@ -124,25 +142,29 @@ Você será levado para o formulário de criação de aplicação. Preencha conf
 
 - **Sync Policy:**  
   `Manual`  
-  Deixe como manual inicialmente. Assim, você terá que clicar em "Sync" para aplicar as alterações quando desejar.  
-  Depois, pode mudar para automática (auto-sync) se quiser que o ArgoCD sempre aplique mudanças do Git automaticamente.
+  Deixe como manual inicialmente. Isso significa que você terá que clicar em "Sync" para aplicar as alterações quando desejar.  
+  Depois, você pode mudar para automática (auto-sync) se quiser que o ArgoCD sempre aplique mudanças do Git automaticamente.
+
+![Configuração Geral](imagesargocd/2.png)
 
 ### 🔹 Source (Fonte dos arquivos YAML)
 
 - **Repository URL:**  
   `https://github.com/SEU_USUARIO/SEU_REPO.git`  
-  Cole a URL exata do seu repositório GitHub onde está o arquivo `online-boutique.yaml`.  
+  Aqui você deve colar a URL exata do seu repositório GitHub onde está o arquivo `online-boutique.yaml`.  
   Substitua `SEU_USUARIO` e `SEU_REPO` pelo nome do seu perfil e do repositório.  
   Exemplo: `https://github.com/diogodantas/gitops-microservices.git`
 
 - **Revision:**  
   `HEAD`  
-  O ArgoCD sempre irá buscar a última versão da branch principal (main ou master).
+  Usar HEAD significa que o ArgoCD sempre irá buscar a última versão da branch principal (main ou master).
 
 - **Path:**  
   `k8s`  
   Caminho dentro do repositório até o arquivo de manifesto.  
   Se seu `online-boutique.yaml` está dentro da pasta `k8s/`, é isso que você coloca.
+
+![Fonte dos arquivos YAML](imagesargocd/3.png)
 
 ### 🔹 Destination (Cluster Kubernetes de destino)
 
@@ -153,6 +175,8 @@ Você será levado para o formulário de criação de aplicação. Preencha conf
 - **Namespace:**  
   `default`  
   O namespace Kubernetes onde os recursos da aplicação serão criados. Pode deixar default, a menos que tenha criado outro namespace.
+
+![Destino Kubernetes](imagesargocd/4.png)
 
 ---
 
@@ -167,6 +191,8 @@ O ArgoCD criará a aplicação e você verá o status dela. Clique em "Sync" par
 
 🔷 **2. Clique em "Sync" para aplicar os arquivos no cluster**  
 Depois de criar a aplicação com sucesso no ArgoCD, é hora de fazer o deploy dos recursos no Kubernetes. Neste primeiro momento, a sincronização é manual e você deve clicar no botão **Sync** na interface do ArgoCD.
+
+![Botão Sync](imagesargocd/5.png)
 
 ### 🔄 O que o botão "Sync" faz?
 
@@ -187,7 +213,7 @@ Ao clicar em **Sync**, o ArgoCD irá:
 
 Após clicar em **Sync** e a sincronização ser concluída com sucesso, você verá um diagrama semelhante ao exemplo abaixo na interface do ArgoCD:
 
-> *(Inclua aqui um print ou screenshot do painel do ArgoCD mostrando a aplicação online-boutique com os componentes — se possível)*
+![Diagrama ArgoCD](imagesargocd/6.png)
 
 Esse diagrama representa todos os recursos da aplicação **online-boutique** criados a partir do seu arquivo YAML. Cada linha conecta os serviços e pods, mostrando:
 
